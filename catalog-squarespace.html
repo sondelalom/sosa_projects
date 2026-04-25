@@ -1,0 +1,153 @@
+<style>
+#js-catalog *{box-sizing:border-box;font-family:inherit}
+#js-catalog input[type=text]{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:14px;outline:none}
+#js-catalog input[type=text]:focus{border-color:#888}
+#js-catalog .cat-btn{font-size:12px;padding:4px 10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;background:transparent;color:#555;margin:2px}
+#js-catalog .cat-btn.active{background:#222;color:#fff;border-color:#222}
+#js-catalog .voice-btn{font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:transparent;color:#555;margin:2px}
+#js-catalog .voice-btn.active{background:#1D9E75;color:#fff;border-color:#1D9E75}
+#js-catalog .inst-btn{font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:transparent;color:#555;margin:2px}
+#js-catalog .inst-btn.active{background:#185FA5;color:#fff;border-color:#185FA5}
+#js-catalog .filter-label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px}
+#js-catalog .filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+#js-catalog .results-bar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;padding-top:10px;margin-bottom:10px}
+#js-catalog .results-count{font-size:13px;color:#888}
+#js-catalog .clear-btn{font-size:12px;color:#888;background:none;border:none;cursor:pointer;padding:0}
+#js-catalog .work-row{padding:10px 12px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:background 0.1s}
+#js-catalog .work-row:hover{background:#f9f9f9}
+#js-catalog .work-row.open{background:#f5f5f5;border-color:#e0e0e0}
+#js-catalog .work-title{font-size:14px;font-weight:600;color:#111}
+#js-catalog .work-meta{display:flex;gap:8px;align-items:center;flex-shrink:0}
+#js-catalog .work-year{font-size:12px;color:#aaa}
+#js-catalog .work-cat{font-size:11px;padding:2px 7px;background:#f0f0f0;color:#666;border-radius:4px}
+#js-catalog .work-forces{font-size:12px;color:#777;margin:3px 0 0}
+#js-catalog .es-badge{font-size:10px;margin-left:6px;padding:2px 5px;background:#E1F5EE;color:#0F6E56;border-radius:4px}
+#js-catalog .work-detail{margin-top:10px;padding-top:10px;border-top:1px solid #eee;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+#js-catalog .detail-label{font-size:11px;color:#aaa}
+#js-catalog .detail-val{font-size:13px;color:#333;margin:2px 0 0}
+#js-catalog .empty{padding:2rem;text-align:center;color:#bbb;font-size:14px}
+#js-catalog .row-header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#js-catalog .row-left{flex:1;min-width:0}
+</style>
+
+<div id="js-catalog">
+  <input type="text" id="jsc-search" placeholder="Search by title, instrument, ensemble...">
+  <div id="jsc-cats"></div>
+  <div class="filter-grid">
+    <div><span class="filter-label">Voice</span><div id="jsc-voices"></div></div>
+    <div><span class="filter-label">Instrument</span><div id="jsc-inst"></div></div>
+  </div>
+  <div class="results-bar">
+    <span class="results-count" id="jsc-count"></span>
+    <button class="clear-btn" id="jsc-clear" onclick="jscClear()" style="display:none">Clear all</button>
+  </div>
+  <div id="jsc-list"></div>
+</div>
+
+<script>
+(function(){
+const W=[
+  {id:1,title:"Ofrenda, A Dia De Muertos Story",year:2026,cat:"Opera",voices:["mezzo-soprano","soprano","baritone"],inst:["strings","piano","percussion"],forces:"mezzo-soprano, soprano ×2, baritone, orchestra",dur:"90 min",lang:"English, Spanish",ens:"Austin Opera"},
+  {id:2,title:"Generación Perdida",year:2025,cat:"Opera",voices:["mezzo-soprano","soprano","tenor"],inst:["piano","string quartet"],forces:"mezzo-soprano, piano; expanded: + string quartet, live video",dur:"50 min",lang:"Spanish",ens:""},
+  {id:3,title:"Monkey",year:2022,cat:"Opera",voices:["countertenor","tenor","bass","mezzo-soprano","soprano","chorus"],inst:["strings","piano","percussion","electronics"],forces:"countertenor, tenor, bass, mezzo-soprano ×2, soprano ×2, SATB chorus, orchestra, electronics",dur:"80 min",lang:"English",ens:"White Snake Projects"},
+  {id:4,title:"The Beehive",year:2022,cat:"Opera",voices:["soprano","mezzo-soprano"],inst:["strings","piano","percussion","winds"],forces:"soprano ×3, mezzo-soprano, orchestra",dur:"70 min",lang:"English",ens:"University of Northern Iowa"},
+  {id:5,title:"Alice in the Pandemic",year:2020,cat:"Opera",voices:["soprano","countertenor","mezzo-soprano"],inst:["string quartet","electronics"],forces:"soprano, counter-tenor, mezzo-soprano, string quartet, electronics",dur:"60 min",lang:"English",ens:"White Snake Projects"},
+  {id:6,title:"I Am A Dreamer Who No Longer Dreams",year:2019,cat:"Opera",voices:["mezzo-soprano","soprano","chorus"],inst:["strings","piano","percussion","winds"],forces:"mezzo-soprano, soprano, children's chorus, orchestra",dur:"90 min",lang:"English",ens:"White Snake Projects"},
+  {id:7,title:"La Reina",year:2016,cat:"Opera",voices:["mezzo-soprano","soprano","baritone","tenor","bass"],inst:["strings","piano","winds","brass","percussion"],forces:"mezzo-soprano, soprano ×2, baritone, tenor ×2, bass ×2, orchestra",dur:"90 min",lang:"English, Spanish",ens:"American Lyric Theater"},
+  {id:8,title:"The Gardener",year:2023,cat:"Opera Shorts",voices:["mezzo-soprano","soprano"],inst:[],forces:"mezzo-soprano, soprano ×2",dur:"10 min",lang:"English",ens:"Atlanta Opera 96 Hour Project"},
+  {id:9,title:"Buford Highway Dreams",year:2022,cat:"Opera Shorts",voices:["tenor","mezzo-soprano"],inst:["piano"],forces:"tenor, mezzo-soprano, piano",dur:"10 min",lang:"Spanish",ens:"Atlanta Opera 96 Hour Project"},
+  {id:10,title:"The Monarch of Uxmal",year:2020,cat:"Opera Shorts",voices:["soprano"],inst:["strings","flute","clarinet","piano","percussion","electronics"],forces:"soprano, violin, cello, flute, clarinet, piano, percussion, electronics",dur:"23 min",lang:"",ens:"Little Orchestra Society"},
+  {id:11,title:"Samiir's Feast",year:2021,cat:"Opera Shorts",voices:["tenor","soprano","mezzo-soprano"],inst:["strings","piano"],forces:"tenor, soprano, mezzo-soprano, violin, cello, piano",dur:"20 min",lang:"English",ens:"White Snake Projects"},
+  {id:12,title:"Premier Car Service",year:2021,cat:"Opera Shorts",voices:["tenor","baritone"],inst:["piano","strings","electronics"],forces:"tenor, baritone, piano, violin, cello, electronics",dur:"9 min",lang:"English",ens:"Swell"},
+  {id:13,title:"I Lost My Name",year:2021,cat:"Art Songs",voices:["soprano"],inst:["piano"],forces:"soprano, piano",dur:"16 min",lang:"English",ens:""},
+  {id:14,title:"Stray Birds (Vols. I–III)",year:2021,cat:"Art Songs",voices:["soprano"],inst:["piano"],forces:"soprano, piano",dur:"45 min",lang:"English",ens:""},
+  {id:15,title:"Dina Von Zweck Songs",year:2021,cat:"Art Songs",voices:["soprano"],inst:["electronics"],forces:"soprano, electronics",dur:"34 min",lang:"English",ens:""},
+  {id:16,title:"Yo Solita Me Arrullo",year:2021,cat:"Art Songs",voices:["mezzo-soprano"],inst:["piano"],forces:"mezzo-soprano, piano",dur:"6 min",lang:"Spanish",ens:"Aural Compass Projects"},
+  {id:17,title:"A Letter Home",year:2020,cat:"Art Songs",voices:["soprano"],inst:["piano"],forces:"soprano, piano",dur:"7 min",lang:"English",ens:"Aural Compass Projects"},
+  {id:18,title:"Song of the Last Crossing",year:2012,cat:"Art Songs",voices:["mezzo-soprano"],inst:["piano"],forces:"mezzo-soprano, piano",dur:"6 min",lang:"English",ens:"OPERA America"},
+  {id:19,title:"Three Songs on Poems by Walt Whitman",year:2010,cat:"Art Songs",voices:["soprano","tenor"],inst:["piano"],forces:"soprano or tenor, piano",dur:"9 min",lang:"English",ens:""},
+  {id:20,title:"Maori Lament",year:2022,cat:"Chamber with Voice",voices:["soprano"],inst:["flute","clarinet","strings","piano","percussion"],forces:"soprano, flute, clarinet, string quartet, piano, percussion",dur:"11 min",lang:"",ens:"Juventas New Music Ensemble"},
+  {id:21,title:"Dina Von Zweck Songs (Voice, Cello & Electronics)",year:2021,cat:"Chamber with Voice",voices:["soprano"],inst:["strings","electronics"],forces:"soprano, cello, electronics",dur:"34 min",lang:"English",ens:"New Music Detroit"},
+  {id:22,title:"Gitanjali #35",year:2019,cat:"Chamber with Voice",voices:["soprano"],inst:["strings","flute","harp"],forces:"soprano, string quartet, flute, harp",dur:"9 min",lang:"English",ens:""},
+  {id:23,title:"Trés Sonetos de Francisco de Quevedo",year:2012,cat:"Chamber with Voice",voices:["soprano"],inst:["guitar"],forces:"soprano, guitar quartet",dur:"12 min",lang:"Spanish",ens:"Cuarteto de Guitarras de la Ciudad de México"},
+  {id:24,title:"The Rising Tide",year:2022,cat:"Choral",voices:["chorus"],inst:["strings","piano","guitar","percussion"],forces:"SATB chorus, strings, piano, bass, electric guitar, drums",dur:"15 min",lang:"English",ens:"Boston Children's Chorus"},
+  {id:25,title:"Pledge of Allegiance",year:2021,cat:"Choral",voices:["soprano","chorus"],inst:["piano"],forces:"soprano soloist, children's chorus (SSAA), piano",dur:"2 min",lang:"English",ens:""},
+  {id:26,title:"Chinese Lullaby",year:2017,cat:"Choral",voices:["soprano","chorus"],inst:["strings","winds","brass","piano","percussion"],forces:"soprano, female chorus, guzheng, chamber orchestra",dur:"6 min",lang:"English",ens:""},
+  {id:27,title:"Mémoire",year:2024,cat:"Orchestra",voices:["mezzo-soprano"],inst:["strings","winds","brass","harp","percussion","electronics","guitar"],forces:"mezzo-soprano, orchestra, electronics, video",dur:"60 min",lang:"",ens:"White Snake Projects"},
+  {id:28,title:"I Dissent",year:2019,cat:"Orchestra",voices:[],inst:["strings","winds","brass","piano","percussion"],forces:"full orchestra",dur:"15 min",lang:"",ens:"Albany Symphony"},
+  {id:29,title:"Descarga",year:2022,cat:"Band",voices:[],inst:["winds","brass","percussion"],forces:"wind ensemble (Grade 4/5)",dur:"",lang:"",ens:"Dartmouth Wind Ensemble"},
+  {id:30,title:"Son Pa' La Banda",year:2022,cat:"Band",voices:[],inst:["winds","brass","percussion"],forces:"wind ensemble (Grade 3)",dur:"",lang:"",ens:"Hopkins Center, Dartmouth College"},
+  {id:31,title:"Son de Harlem",year:2021,cat:"Orchestra",voices:[],inst:["strings"],forces:"string orchestra",dur:"11 min",lang:"",ens:"Washington Heights Chamber Orchestra"},
+  {id:32,title:"Sunrise",year:2017,cat:"Orchestra",voices:[],inst:["strings","winds","brass","percussion"],forces:"full orchestra",dur:"4 min",lang:"",ens:""},
+  {id:33,title:"Domino Effect",year:2010,cat:"Orchestra",voices:[],inst:["strings"],forces:"saxophone, string orchestra",dur:"11 min",lang:"",ens:""},
+  {id:34,title:"Estampas Huastecas",year:2024,cat:"Chamber",voices:[],inst:["guitar"],forces:"guitar duo",dur:"10 min",lang:"",ens:"Puertas-Vazquez Duo"},
+  {id:35,title:"Pequeño Concierto para Corno, Guitarra, y Cuarteto de Cuerdas",year:2022,cat:"Chamber",voices:[],inst:["strings","guitar","brass"],forces:"horn, guitar, string quartet",dur:"10 min",lang:"",ens:"Borderlands Ensemble"},
+  {id:36,title:"Rocola",year:2022,cat:"Chamber",voices:[],inst:["flute","clarinet","strings","piano","percussion"],forces:"flute, clarinet, violin, cello, piano, percussion",dur:"12 min",lang:"",ens:"Victory Players"},
+  {id:37,title:"Dos Danzas",year:2021,cat:"Chamber",voices:[],inst:["strings","piano"],forces:"cello, piano",dur:"9 min",lang:"",ens:""},
+  {id:38,title:"Cajón",year:2011,cat:"Chamber",voices:[],inst:["guitar"],forces:"guitar quartet (also for guitar trio)",dur:"7 min",lang:"",ens:"Mexico City Guitar Quartet"},
+  {id:39,title:"A Well Organized Disaster",year:2012,cat:"Chamber",voices:[],inst:["brass","percussion"],forces:"trombone and percussion (also tuba and percussion)",dur:"10 min",lang:"",ens:""},
+  {id:40,title:"Amado",year:2025,cat:"Solo",voices:[],inst:["strings"],forces:"cello solo",dur:"6 min",lang:"",ens:"Bryan Hayslett"},
+  {id:41,title:"Reimagined Spring",year:2020,cat:"Solo",voices:[],inst:["strings"],forces:"cello solo",dur:"6 min",lang:"",ens:"Matt Haimovitz / Primavera Project"},
+  {id:42,title:"Punto y Línea",year:2007,cat:"Solo",voices:[],inst:["flute"],forces:"flute solo",dur:"12 min",lang:"",ens:""},
+  {id:43,title:"Over the Event Horizon",year:2010,cat:"Solo",voices:[],inst:["piano"],forces:"piano solo",dur:"12 min",lang:"",ens:""},
+  {id:44,title:"Cuestión de 3",year:2013,cat:"Solo",voices:[],inst:["piano"],forces:"piano solo",dur:"6 min",lang:"",ens:""},
+  {id:45,title:"Refraction I",year:2008,cat:"Electronics",voices:[],inst:["clarinet","electronics"],forces:"clarinet and electronics",dur:"15 min",lang:"",ens:""},
+  {id:46,title:"Enchantment",year:2014,cat:"Electronics",voices:[],inst:["electronics"],forces:"tarogato, fixed media, live DSP",dur:"10 min",lang:"",ens:"Esther Lamneck"},
+  {id:47,title:"Still Life",year:2011,cat:"Electronics",voices:[],inst:["electronics"],forces:"oboe and electronics",dur:"12 min",lang:"",ens:"Laura Medisky"},
+  {id:48,title:"Elegy for the Victims of Gun Violence",year:2017,cat:"Electronics",voices:[],inst:["strings","electronics"],forces:"cello and electronics",dur:"11 min",lang:"",ens:""},
+  {id:49,title:"Ghost Birds",year:2019,cat:"Electronics",voices:[],inst:["electronics"],forces:"fixed media, optional improvising ensemble",dur:"10 min",lang:"",ens:""},
+  {id:50,title:"Carnaval",year:2008,cat:"Electronics",voices:[],inst:["electronics"],forces:"fixed electronic media",dur:"11 min",lang:"",ens:""}
+];
+const CATS=["All","Opera","Opera Shorts","Art Songs","Chamber with Voice","Choral","Orchestra","Band","Chamber","Solo","Electronics"];
+const VF=["soprano","mezzo-soprano","tenor","baritone","bass","countertenor","chorus"];
+const IF=["piano","guitar","strings","flute","clarinet","electronics","winds","brass","percussion","harp"];
+let selCat="All",selV=[],selI=[],openId=null;
+
+function render(){
+  const q=(document.getElementById("jsc-search").value||"").toLowerCase();
+  // cats
+  document.getElementById("jsc-cats").innerHTML=CATS.map(c=>`<button class="cat-btn${selCat===c?" active":""}" onclick="jscCat('${c}')">${c}</button>`).join("");
+  // voices
+  document.getElementById("jsc-voices").innerHTML=VF.map(v=>`<button class="voice-btn${selV.includes(v)?" active":""}" onclick="jscV('${v}')">${v}</button>`).join("");
+  // instruments
+  document.getElementById("jsc-inst").innerHTML=IF.map(i=>`<button class="inst-btn${selI.includes(i)?" active":""}" onclick="jscI('${i}')">${i}</button>`).join("");
+  // filter
+  const f=W.filter(w=>{
+    if(selCat!=="All"&&w.cat!==selCat)return false;
+    if(q&&!w.title.toLowerCase().includes(q)&&!w.forces.toLowerCase().includes(q)&&!w.ens.toLowerCase().includes(q))return false;
+    if(selV.length&&!selV.some(v=>w.voices.includes(v)))return false;
+    if(selI.length&&!selI.some(i=>w.inst.includes(i)))return false;
+    return true;
+  }).sort((a,b)=>b.year-a.year);
+  document.getElementById("jsc-count").textContent=f.length+" work"+(f.length!==1?"s":"")+" found";
+  const hasF=selCat!=="All"||selV.length||selI.length||q;
+  document.getElementById("jsc-clear").style.display=hasF?"":"none";
+  document.getElementById("jsc-list").innerHTML=f.length?f.map(w=>`
+    <div class="work-row${openId===w.id?" open":""}" onclick="jscOpen(${w.id})">
+      <div class="row-header">
+        <div class="row-left">
+          <span class="work-title">${w.title}</span>
+          ${w.lang&&w.lang.includes("Spanish")?'<span class="es-badge">ES</span>':""}
+        </div>
+        <div class="work-meta">
+          <span class="work-year">${w.year}</span>
+          <span class="work-cat">${w.cat}</span>
+        </div>
+      </div>
+      <p class="work-forces">${w.forces}</p>
+      ${openId===w.id?`<div class="work-detail">
+        ${w.dur?`<div><div class="detail-label">Duration</div><p class="detail-val">${w.dur}</p></div>`:""}
+        ${w.lang?`<div><div class="detail-label">Language</div><p class="detail-val">${w.lang}</p></div>`:""}
+        ${w.ens?`<div style="grid-column:1/-1"><div class="detail-label">Ensemble / Commission</div><p class="detail-val">${w.ens}</p></div>`:""}
+      </div>`:""}
+    </div>`).join(""):`<div class="empty">No works match your filters.</div>`;
+}
+window.jscCat=function(c){selCat=c;render();}
+window.jscV=function(v){selV=selV.includes(v)?selV.filter(x=>x!==v):[...selV,v];render();}
+window.jscI=function(i){selI=selI.includes(i)?selI.filter(x=>x!==i):[...selI,i];render();}
+window.jscOpen=function(id){openId=openId===id?null:id;render();}
+window.jscClear=function(){selCat="All";selV=[];selI=[];document.getElementById("jsc-search").value="";render();}
+document.getElementById("jsc-search").addEventListener("input",render);
+render();
+})();
+</script>
